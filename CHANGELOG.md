@@ -1,18 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-10-29
 
 ### Changed
 
 - Accept mobile and card payments at the corporate `/api/rest/v1/paymentService` endpoint. Require bearer headers and type `1` or `2`; accept `callback_url` and the observed `callbackUrl` alias, while rejecting duplicate callback names, obsolete card fields, and body credentials.
-- Use the corporate request format in the gateway dashboard and the upcoming PHP 4 and TypeScript 3 client examples. Keep the legacy card route and payout protocol available.
+- Use the corporate request format in the gateway dashboard and the PHP 4 and TypeScript 3 client examples. Keep the legacy card route and payout protocol available.
 - Preserve existing SQLite transaction records while removing the obsolete card description, home URL, and reference-length requirements.
 - Migrate SDK examples and cross-client checks to required `BaseUrl` objects, explicit payment methods, immutable `Status` values, separate acceptance and payment outcomes, and credential-independent callback parsing.
 - Keep README examples on the current SDK APIs and point migration guidance to the clients' versioned upgrade guides.
 
 ### Fixed
 
-- Update shadcn to 4.23.0 and constrain `fast-uri` and `systeminformation` to patched versions after dependency auditing. The existing braces exception remains unchanged; the unpatched deepmerge advisory still fails the audit gate.
+- Use the official shadcn 4.23.0 eject workflow to retain its Tailwind utilities as local CSS and remove the CLI dependency, including vulnerable `deepmerge` and `braces` chains. Remove the obsolete dependency overrides and audit exception; local and CI audits now check every dependency.
 
 ### Added
 

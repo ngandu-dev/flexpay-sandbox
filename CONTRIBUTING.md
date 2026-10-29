@@ -39,9 +39,8 @@ make check
 
 `make check` runs backend and frontend checks in parallel: Rust formatting,
 Clippy, backend tests, frontend dependency auditing, TypeScript checking,
-frontend tests, and the frontend build. Both projects must pass. The one approved
-audit exception is documented [below](#audit-exception); do not
-add or broaden exceptions without maintainer agreement.
+frontend tests, and the frontend build. Both projects must pass. Dependency audits have no advisory exceptions; do not suppress findings
+to make a release pass.
 
 To check the packaged application locally:
 
@@ -54,28 +53,28 @@ The smoke test uses a disposable Compose project and volume. CI runs this test
 on native AMD64 and ARM64 runners in parallel, plus a separate development
 Compose smoke test.
 
-### Audit exception
+### Shared UI styles and dependency auditing
 
-The audit excludes only [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm):
-`shadcn` pulls in `braces@3.0.3` through its CLI's `fast-glob`/`micromatch`
-dependencies. The advisory covers stack exhaustion from deeply nested brace
-patterns and has no published patched version as of October 21, 2026. We retain
-the official shadcn package for its stylesheet export and registry tooling. The
-release runtime contains neither Node nor these dependencies; the affected CLI
-is used only during development and builds.
+The dashboard uses the official shadcn Base UI components and `base-nova` preset in
+`frontend/components.json`. Version 0.2.0 used the supported
+[shadcn eject command](https://ui.shadcn.com/docs/changelog/2026-05-shadcn-eject) to inline the
+637-line stylesheet from `shadcn@4.23.0` in `frontend/src/styles.css`. Its MIT notice is retained.
+The resulting application needs no shadcn CLI dependency during installation or builds.
 
-Both CI and `make check` use the same explicit advisory exception. All other
-findings fail the audit. Remove the exception once an upstream release removes
-or fixes this dependency. Run `bun audit --cwd frontend` without the exception to
-view the complete report.
+This removes the unpatched `deepmerge` and `braces` dependency chains, rather than ignoring their
+advisories. `make check` and CI run the complete dependency audit without exceptions.
 
-### Corporate migration audit status
+Continue using the official registry when adding or updating components, for example from `frontend/`:
 
-The corporate migration updates shadcn and constrains `fast-uri` and `systeminformation` to patched
-releases. The audit still reports [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
-for `deepmerge@4.3.1`, used by shadcn's registry tooling. There is no published fixed deepmerge
-release as of October 29, 2026. This advisory is not an approved exception: `make check` and CI keep
-failing that audit until an upstream fix or a reviewed dependency change resolves it.
+```shell
+bunx --bun shadcn@latest add @shadcn/button --dry-run
+```
+
+Review the proposed changes before applying them, retain the existing Base UI preset, and rerun
+`make check`. Ejected utilities do not receive automatic upstream stylesheet updates. Compare them
+with the official stylesheet when updating components that need new utilities; keep the version and
+license notice current. If the CLI reintroduces its dependency, use its supported `eject` command
+again and verify the build and unfiltered audit before committing.
 
 ## Project layout
 
@@ -116,7 +115,7 @@ By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Publishing a release
 
-Push a version tag such as `v0.1.0` or `v0.2.0-rc.1`. The release workflow reruns
+Push a version tag such as `v0.2.0` or `v0.3.0-rc.1`. The release workflow reruns
 all checks before publishing `ghcr.io/bernard-ng/flexpay-sandbox` for
 `linux/amd64` and `linux/arm64`. It then creates a GitHub release with generated
 notes and a standalone `compose.prod.yaml` attachment pinned to the image digest.
@@ -126,8 +125,8 @@ Image builds run in parallel on native `ubuntu-24.04` (AMD64) and
 pushes its image by digest; a final job combines both into one multi-platform
 image before publishing version tags and the release. QEMU is not required.
 
-Images receive both the Git tag (`:v0.1.0`) and the version without `v`
-(`:0.1.0`). Stable tags also update `:latest`; prereleases are marked as
+Images receive both the Git tag (`:v0.2.0`) and the version without `v`
+(`:0.2.0`). Stable tags also update `:latest`; prereleases are marked as
 prereleases on GitHub and leave `:latest` unchanged. The workflow uses the
 built-in `GITHUB_TOKEN` with package/release write permissions; no registry
 secret is needed.

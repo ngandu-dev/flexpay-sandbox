@@ -55,8 +55,7 @@ jobs:
         run: bun install --cwd frontend --frozen-lockfile
 
       - name: Audit frontend dependencies
-        # Unpatched braces in shadcn's CLI; see CONTRIBUTING.md's audit exception.
-        run: bun audit --cwd frontend --ignore GHSA-vfj7-8cjw-p6xm
+        run: bun audit --cwd frontend
 
       - name: Check frontend types
         run: bun run --cwd frontend typecheck

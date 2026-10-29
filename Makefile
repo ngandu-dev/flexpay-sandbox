@@ -8,7 +8,7 @@ check:
 		cargo test --manifest-path backend/Cargo.toml --locked \
 	) & backend_pid=$$!; \
 	( \
-		bun audit --cwd frontend --ignore GHSA-vfj7-8cjw-p6xm && \
+		bun audit --cwd frontend && \
 		bun run --cwd frontend typecheck && \
 		bun run --cwd frontend test && \
 		bun run --cwd frontend build \

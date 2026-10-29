@@ -9,7 +9,7 @@ name: your_app
 
 services:
   flexpay_sandbox:
-    image: ghcr.io/bernard-ng/flexpay-sandbox:latest
+    image: ghcr.io/bernard-ng/flexpay-sandbox:v0.2.0
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -31,14 +31,14 @@ Start it and open **http://localhost:8080**:
 docker compose up -d
 ```
 
-Use a published version such as `:v0.1.0` instead of `:latest` to pin a version. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
+Use `:v0.2.0` to pin this release, or `:latest` to follow stable releases. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
 
 Change the published port and `FLEXPAY_PUBLIC_URL` together when using a different address. Set `FLEXPAY_MERCHANT` and `FLEXPAY_TOKEN` to the test credentials your integration will use. This is a development simulator; keep it local and use test data only.
 
 ## Point your integration at the sandbox
 
-The corporate API and SDK examples below are unreleased. Use the
-[source development setup](CONTRIBUTING.md#development) until a published simulator release includes them.
+Version 0.2.0 supports the corporate API used by the PHP 4 and TypeScript 3 clients.
+Use the [source development setup](CONTRIBUTING.md#development) when changing the simulator.
 
 Use these base URLs with the TypeScript or PHP clients:
 
@@ -87,7 +87,7 @@ If your application runs in the same Docker network, use `http://flexpay_sandbox
 
 ## Corporate API
 
-The upcoming PHP 4 and TypeScript 3 clients send mobile (`type: "1"`) and card (`type: "2"`)
+The PHP 4 and TypeScript 3 clients send mobile (`type: "1"`) and card (`type: "2"`)
 requests to `POST /api/rest/v1/paymentService`. Authenticate with the `Authorization: Bearer ...`
 header. The endpoint requires `callback_url` or its observed alias `callbackUrl`; card requests also
 require `approve_url`, `cancel_url`, and `decline_url`. The SDKs and examples keep the documented

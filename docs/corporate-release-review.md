@@ -1,15 +1,16 @@
 # Corporate API release review
 
-Prepared on 2026-10-29. The user approved committing the reviewed changes in all three repositories.
-Tagging, package publication, and production deployment remain pending.
+Prepared on 2026-10-29. After reviewing the changes and remaining provider limitations, the user authorized
+merging locally to main, tagging, pushing, and releasing all three repositories. Publication remains subject
+to the existing automated checks; its final status must be verified from the release workflows.
 
 ## Scope
 
 | Repository | Review branch | Planned release |
 | --- | --- | --- |
 | `ngandu-dev/flexpay-php` | `codex/flexpay-corporate-v4` | PHP SDK 4.0.0 |
-| `ngandu-dev/flexpay-ts` (local folder `flexpay`) | `codex/flexpay-corporate-v3` | TypeScript SDK 3.0.0, pending major Changeset |
-| `bernard-ng/flexpay-sandbox` (local folder `flexpay-proxy`) | `codex/flexpay-corporate` | Unreleased simulator update |
+| `ngandu-dev/flexpay-ts` (local folder `flexpay`) | `codex/flexpay-corporate-v3` | TypeScript SDK 3.0.0 |
+| `bernard-ng/flexpay-sandbox` (local folder `flexpay-proxy`) | `codex/flexpay-corporate` | Simulator 0.2.0 |
 
 The supplied corporate API document and endpoint message define the collection contract. The original PDF is not
 copied into any repository. The platform application remains on its existing released SDK; migrating that consumer
@@ -106,28 +107,35 @@ callbacks. Pending seed records remain available for manual resolution in the da
 | TypeScript frozen install and audit | Passed; zero advisories |
 | TypeScript coverage | 100% statements/lines/functions, 95.29% branches |
 | Rust format, Clippy, and tests | Passed; 13 backend tests, including both callback spellings and duplicate-name rejection |
-| Dashboard typecheck, tests, and build | Passed separately after the audit stopped that branch of `make check`; 8 frontend tests, 26 assertions |
+| Dashboard typecheck, tests, and build | Passed in the full release `make check`; 8 frontend tests, 26 assertions |
 | Dashboard frozen install and React Doctor | Passed; React Doctor 100/100 |
-| Cross-client HTTP integration | Passed: 6 idempotent seeds and 16 SDK-created transactions |
+| Cross-client HTTP integration | Passed against the final PHP 4 and TypeScript 3 release commits: 6 idempotent seeds and 16 SDK-created transactions |
 | Manual resolution of both pending seeds | Passed; status zero and provider references returned |
 | Development Compose build, health, dashboard, and proxied API | Passed in an isolated project on port 18086 |
-| Packaged Docker image smoke, ARM64 | Passed after the callback-alias update; simulator runtime is unchanged by the SDK object refactor |
+| Packaged Docker image smoke, ARM64 | Passed for 0.2.0 after the dependency fix; packaged binary version, CSS, fonts, license notice, dashboard, deep links, and API verified |
 | Packaged Docker image build, AMD64 | Attempted; QEMU crashed running `rustc -vV` with SIGSEGV before compilation. Native AMD64 CI remains required. |
 | Browser card flow | Passed: corporate request, hosted form, approval redirect, succeeded dashboard row |
 | All three repositories' diff whitespace checks | Passed |
-| Sandbox `make check` | Fails only at the dependency audit described below |
+| Sandbox `make check` | Passed for 0.2.0 after removing the unused CLI dependency; full audit found zero vulnerabilities across 197 packages, with no exceptions |
 | Real provider rejection responses | Both payment types and a nonexistent-order check returned HTTP 200 JSON with code `"1"`; captured response shapes fit the SDK contracts |
 | Real provider card initiation | One USD 1 request for the confirmed merchant returned HTTP 200, code `"0"`, a non-empty order number, and an HTTPS checkout URL. The refactored TypeScript client parsed it successfully. Checkout was not opened or completed. |
 | Real provider existing-order check | PHP and TypeScript each sent one GET and parsed identical HTTP 200 JSON: lookup code `"0"`, transaction status `"4"`, and an operator-declined message. Both retain `Status` values and report payment success as false. |
 
-The sandbox audit reports one low-severity finding in `deepmerge@4.3.1`, through
-`shadcn > @shadcn/registry > deepmerge`:
-[GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4).
-The registry had no patched release when checked. Other reported advisories were repaired with compatible updates.
-No new audit exception was added. The full sandbox gate is therefore not green, even though its functional checks
-pass. The package is part of registry CLI tooling; the packaged release contains compiled assets and the Rust binary.
+The initial sandbox audit found unpatched `deepmerge@4.3.1` through shadcn's CLI and registry tooling:
+[GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4). The upstream advisory and
+npm registry still had no patched version on 2026-10-29. Release preparation uses the official
+[shadcn eject workflow](https://ui.shadcn.com/docs/changelog/2026-05-shadcn-eject) to retain exactly the
+same Tailwind utilities locally and remove the CLI dependency. This also removes the `braces` chain,
+its old audit exception, and obsolete dependency overrides. Local and CI audits now check every dependency.
 
 Detailed local logs are available at:
+
+- `/tmp/flexpay-sandbox-release-check.log`, `/tmp/flexpay-sandbox-release-frozen-install.log`, and
+  `/tmp/flexpay-sandbox-release-css-equivalence.log` record the 0.2.0 checks, unfiltered audit, frozen install,
+  and stylesheet equivalence after the supported eject workflow;
+- `/tmp/flexpay-sandbox-release-arm64-build.log`, `/tmp/flexpay-sandbox-release-arm64-smoke.log`,
+  `/tmp/flexpay-sandbox-release-image-version.log`, and `/tmp/flexpay-sandbox-release-image-css.log` record the
+  final 0.2.0 packaged-image checks; `/tmp/flexpay-release-final-cross-client.log` records the final release integration;
 
 - `/tmp/flexpay-php-observed-order-quality.log`, `/tmp/flexpay-php-observed-order-php84-quality.log`,
   `/tmp/flexpay-ts-validation/observed-order-quality.log`, and `observed-order-node24.log` record the latest
@@ -138,7 +146,7 @@ Detailed local logs are available at:
   record the final TypeScript checks; `redesign-install.log` and `redesign-audit.log` record the install and audit;
 - `/tmp/flexpay-object-design-final-integration.log` records the final HTTP integration for both refactored clients;
 - `/tmp/flexpay-sandbox-sdk-refactor-check.log` and `/tmp/flexpay-sandbox-sdk-refactor-frontend.log` record
-  current simulator checks, including the unchanged audit failure;
+  the earlier simulator checks and audit failure before the release dependency fix;
 - `/tmp/flexpay-php-quality.log`, `/tmp/flexpay-php84-tests.log`, and `/tmp/flexpay-php84-typecheck.log`;
 - `/tmp/flexpay-ts-validation/quality.log`, `coverage.log`, `audit.log`, and `node24.log`;
 - `/tmp/flexpay-cross-client-check.log`;
@@ -223,7 +231,7 @@ Added SDK regressions replay the observed invalid-amount JSON and HTML 403 respo
 as `ClientException` with `type: invalid_response`; TypeScript does the same. Neither includes the HTML body in the
 diagnostic message. The callback-alias implementation also passed the six-seed, 16-transaction integration run and
 the updated ARM64 packaged image smoke check. Current SDK counts and checks after the object refactor appear above;
-the pre-existing sandbox audit failure remains.
+the earlier sandbox audit failure was subsequently resolved by the release dependency fix above.
 
 Sanitized live evidence is in `/tmp/flexpay-live-schema-review/callback-fields.json`, `callback-fields-isolated.json`,
 `callback-fields-binding.json`, and `callback-fields-card-confirmation.json`. Updated verification logs are
@@ -293,13 +301,15 @@ Stop and remove only this review stack and its test volume when finished:
 FLEXPAY_PORT=18086 docker compose -p flexpay_corporate_review_dev -f compose.dev.yaml down --volumes
 ```
 
-## Release conditions
+## Release authorization and remaining provider limitations
 
-Live rejection parsing, card checkout-link generation, and status parsing for a declined card order are verified.
-Successful collection, callback delivery, and paid or pending status responses remain unverified. Before publishing,
-verify a mobile collection, completion of a card collection, callbacks, and a status lookup reporting actual payment
-success with that account. Record the provider's pending status and paid-transaction response structure; the supplied
-document does not define them. Do not infer paid state from request acceptance or browser redirects.
+The user authorized the releases after reviewing the live evidence and remaining limitations. Live rejection
+parsing, card checkout-link generation, and status parsing for a declined card order are verified. Successful
+collection, callback delivery, and paid or pending status responses remain unverified; no additional provider
+requests are part of this release. The supplied document does not define every status. Consumers must reconcile
+actual payment outcomes and must not infer paid state from request acceptance or browser redirects.
 
-The three working-tree diffs were approved for commit. Applying the TypeScript Changeset, tagging, publishing,
-or updating the platform's dependency requires separate approval.
+The authorized work includes merging locally to main, applying release versions, tagging, pushing, and publishing
+through each repository's release workflow. Required automated gates remain in force. The sandbox workflow checks
+both architectures on native runners before publishing the multi-platform image. Platform dependency migration
+is a separate change and is not included in these releases.
