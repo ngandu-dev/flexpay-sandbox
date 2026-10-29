@@ -18,12 +18,15 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
-    let state = AppState::new(
-        Store::open(&args.database)?,
-        args.merchant,
-        args.token,
-        args.public_url,
-    )?;
+    let store = Store::open(&args.database)?;
+
+    if args.seed {
+        let inserted = flexpay_sandbox::seeds::seed(&store, &args.merchant).await?;
+        println!("Inserted {inserted} seed transactions; existing records were preserved.");
+        return Ok(());
+    }
+
+    let state = AppState::new(store, args.merchant, args.token, args.public_url)?;
 
     let listener = tokio::net::TcpListener::bind(args.bind).await?;
 

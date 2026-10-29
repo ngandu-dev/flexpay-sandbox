@@ -31,32 +31,42 @@ const values: PaymentValues = {
 };
 
 describe("gateway contract", () => {
-  test("mobile and payout preserve decimal strings and omit card fields", () => {
-    for (const kind of ["mobile", "payout"] as const) {
-      const body = paymentRequest({ ...values, kind }, info);
-
-      expect(body).toMatchObject({
-        merchant: "TESTMERCHANT",
-        amount: "25.00",
-        phone: values.phone,
-        type: 1,
-        callbackUrl: values.callbackUrl,
-      });
-      expect(body).not.toHaveProperty("authorization");
-      expect(body).not.toHaveProperty("approveUrl");
-    }
-  });
-  test("cards include body authorization and all return URLs, and omit phone", () => {
-    const body = paymentRequest({ ...values, kind: "card" }, info);
-
-    expect(body).toMatchObject({
-      authorization: "Bearer test-token",
-      approveUrl: values.returnUrl,
-      declineUrl: values.returnUrl,
-      cancelUrl: values.returnUrl,
-      homeUrl: values.returnUrl,
+  test("mobile uses the corporate snake_case callback field", () => {
+    expect(paymentRequest(values, info)).toEqual({
+      merchant: "TESTMERCHANT",
+      type: "1",
+      reference: values.reference,
+      amount: "25.00",
+      currency: "USD",
+      callback_url: values.callbackUrl,
+      phone: values.phone,
     });
-    expect(body).not.toHaveProperty("phone");
+  });
+
+  test("payout preserves its existing callback contract", () => {
+    expect(paymentRequest({ ...values, kind: "payout" }, info)).toEqual({
+      merchant: "TESTMERCHANT",
+      type: "1",
+      reference: values.reference,
+      amount: "25.00",
+      currency: "USD",
+      callbackUrl: values.callbackUrl,
+      phone: values.phone,
+    });
+  });
+
+  test("cards send type 2 and return URLs without body credentials or legacy fields", () => {
+    expect(paymentRequest({ ...values, kind: "card" }, info)).toEqual({
+      merchant: "TESTMERCHANT",
+      type: "2",
+      reference: values.reference,
+      amount: "25.00",
+      currency: "USD",
+      callback_url: values.callbackUrl,
+      approve_url: values.returnUrl,
+      decline_url: values.returnUrl,
+      cancel_url: values.returnUrl,
+    });
   });
 });
 

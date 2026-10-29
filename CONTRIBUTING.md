@@ -69,6 +69,14 @@ findings fail the audit. Remove the exception once an upstream release removes
 or fixes this dependency. Run `bun audit --cwd frontend` without the exception to
 view the complete report.
 
+### Corporate migration audit status
+
+The corporate migration updates shadcn and constrains `fast-uri` and `systeminformation` to patched
+releases. The audit still reports [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
+for `deepmerge@4.3.1`, used by shadcn's registry tooling. There is no published fixed deepmerge
+release as of October 29, 2026. This advisory is not an approved exception: `make check` and CI keep
+failing that audit until an upstream fix or a reviewed dependency change resolves it.
+
 ## Project layout
 
 - `backend/src/`: Rust API, simulation behavior, callbacks, and SQLite storage.

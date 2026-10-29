@@ -18,14 +18,6 @@ use super::auth::authorize;
 
 type PaymentBody = Result<Json<PaymentRequest>, JsonRejection>;
 
-pub(super) async fn mobile(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-    body: PaymentBody,
-) -> ApiResult<Json<Value>> {
-    create(state, headers, body, PaymentKind::Mobile).await
-}
-
 pub(super) async fn payout(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,

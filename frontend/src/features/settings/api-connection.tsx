@@ -43,10 +43,10 @@ export function ApiConnection() {
               ["Merchant", query.data.merchant],
               ["Bearer token", query.data.token],
               [
-                "Mobile / payout base URL",
+                "Payment / check / payout base URL",
                 `${query.data.publicUrl}/api/rest/v1`,
               ],
-              ["Card payment URL", `${query.data.publicUrl}/v1.1/pay`],
+              ["Payment endpoint", `${query.data.publicUrl}/api/rest/v1/paymentService`],
             ].map(([label, value]) => (
               <ConnectionValue key={label} label={label} value={value} />
             ))}

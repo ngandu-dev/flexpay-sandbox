@@ -2,7 +2,7 @@ import type { Info } from "@/lib/api";
 
 export type PaymentKind = "mobile" | "card" | "payout";
 
-export interface PaymentValues {
+export type PaymentValues = {
   kind: PaymentKind;
   amount: string;
   currency: string;
@@ -15,19 +15,18 @@ export interface PaymentValues {
 export function paymentRequest(value: PaymentValues, info: Info) {
   return {
     merchant: info.merchant,
-    type: 1,
+    type: value.kind === "card" ? "2" : "1",
     reference: value.reference,
     amount: value.amount,
     currency: value.currency,
-    callbackUrl: value.callbackUrl,
+    ...(value.kind === "payout"
+      ? { callbackUrl: value.callbackUrl }
+      : { callback_url: value.callbackUrl }),
     ...(value.kind === "card"
       ? {
-          authorization: `Bearer ${info.token}`,
-          description: "Sandbox payment",
-          approveUrl: value.returnUrl,
-          cancelUrl: value.returnUrl,
-          declineUrl: value.returnUrl,
-          homeUrl: value.returnUrl,
+          approve_url: value.returnUrl,
+          cancel_url: value.returnUrl,
+          decline_url: value.returnUrl,
         }
       : { phone: value.phone }),
   };

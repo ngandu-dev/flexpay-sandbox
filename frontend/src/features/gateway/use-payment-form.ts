@@ -29,9 +29,7 @@ export function usePaymentForm(info: Info) {
   const mutation = useMutation({
     mutationFn: (value: PaymentValues) =>
       api<Record<string, unknown>>(
-        value.kind === "card"
-          ? "/v1.1/pay"
-          : `/api/rest/v1/${value.kind === "payout" ? "merchantPayOutService" : "paymentService"}`,
+        `/api/rest/v1/${value.kind === "payout" ? "merchantPayOutService" : "paymentService"}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${info.token}` },
@@ -50,11 +48,7 @@ export function usePaymentForm(info: Info) {
       onSubmit: ({ value }) => ({
         fields: {
           amount: paymentAmount(value.amount),
-          reference:
-            required(value.reference) ||
-            (value.kind === "card" && value.reference.length > 25
-              ? "Card references can have at most 25 characters"
-              : undefined),
+          reference: required(value.reference),
           callbackUrl: httpUrl(value.callbackUrl),
           ...(value.kind === "card"
             ? { returnUrl: httpUrl(value.returnUrl) }

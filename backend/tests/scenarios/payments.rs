@@ -58,7 +58,7 @@ async fn auth_validation_manual_resolution_and_refunds() {
         .await
         .unwrap();
     assert_eq!(response.status(), 400);
-    bad["callbackUrl"] = json!("http://localhost/callback");
+    bad["callback_url"] = json!("http://localhost/callback");
     bad["amount"] = json!(-1);
     let response = Client::new()
         .post(format!("{base}/api/rest/v1/paymentService"))

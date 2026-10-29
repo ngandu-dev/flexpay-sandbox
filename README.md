@@ -37,29 +37,97 @@ Change the published port and `FLEXPAY_PUBLIC_URL` together when using a differe
 
 ## Point your integration at the sandbox
 
+The corporate API and SDK examples below are unreleased. Use the
+[source development setup](CONTRIBUTING.md#development) until a published simulator release includes them.
+
 Use these base URLs with the TypeScript or PHP clients:
 
 | API | Base URL |
 | --- | --- |
-| Mobile payments, payouts, and status checks | `http://localhost:8080/api/rest/v1` |
-| Card payments | `http://localhost:8080/v1.1` |
+| Mobile and card payments | `http://localhost:8080/api/rest/v1` |
+| Status checks | `http://localhost:8080/api/rest/v1` |
+| Payouts (existing contract) | `http://localhost:8080/api/rest/v1` |
 
 ```ts
-const client = new Client('TESTMERCHANT', 'test-token', 'dev', {
-  apiBaseUrl: 'http://localhost:8080/api/rest/v1',
-  cardBaseUrl: 'http://localhost:8080/v1.1',
-});
-```
+import { Client, type BaseUrl } from '@ngandu-dev/flexpay';
 
-```php
-$client = new Client(
-    new Credential('test-token', 'TESTMERCHANT'),
-    apiBaseUrl: 'http://localhost:8080/api/rest/v1',
-    cardBaseUrl: 'http://localhost:8080/v1.1',
+const baseUrl: BaseUrl = {
+  payment: 'http://localhost:8080/api/rest/v1',
+  check: 'http://localhost:8080/api/rest/v1',
+  payout: 'http://localhost:8080/api/rest/v1',
+};
+
+const client = new Client(
+  { merchant: 'TESTMERCHANT', token: 'test-token' },
+  baseUrl,
 );
 ```
 
+```php
+use Ngandu\Flexpay\BaseUrl;
+use Ngandu\Flexpay\Client;
+use Ngandu\Flexpay\Credential;
+
+$client = new Client(
+    credential: new Credential(merchant: 'TESTMERCHANT', token: 'test-token'),
+    baseUrl: new BaseUrl(
+        payment: 'http://localhost:8080/api/rest/v1',
+        check: 'http://localhost:8080/api/rest/v1',
+        payout: 'http://localhost:8080/api/rest/v1',
+    ),
+);
+```
+
+Both clients require all three prefixes in one `BaseUrl` object. They have no environment switch or
+implicit network destinations. The production preset must be selected explicitly. Initiation results
+report acceptance; checks and callbacks report payment outcomes. Codes and transaction statuses are
+always `Status` values, with the provider's integer available through `value`.
+
 If your application runs in the same Docker network, use `http://flexpay_sandbox:8080` as the host in those URLs. The sandbox never forwards transactions to the live gateway.
+
+## Corporate API
+
+The upcoming PHP 4 and TypeScript 3 clients send mobile (`type: "1"`) and card (`type: "2"`)
+requests to `POST /api/rest/v1/paymentService`. Authenticate with the `Authorization: Bearer ...`
+header. The endpoint requires `callback_url` or its observed alias `callbackUrl`; card requests also
+require `approve_url`, `cancel_url`, and `decline_url`. The SDKs and examples keep the documented
+`callback_url` spelling. Provider validation probes recognized both callback spellings for mobile
+and card requests; successful payment and callback delivery with the provider remain unverified.
+The simulator rejects requests containing both callback names, body credentials, `description`, or
+`home_url`. Amounts accept JSON numbers or decimal strings. Card responses include a local hosted
+`/checkout/{id}` URL.
+
+The legacy `/v1.1/pay` route remains available for testing old card integrations. Payouts retain
+`/api/rest/v1/merchantPayOutService` and their existing request format. Existing SQLite data remains readable.
+
+The current corporate payment host is `corporateapi.flexpay.cd`; the status-check host is
+`apicheck.flexpaie.com`. No corporate sandbox URL was provided. The client examples above explicitly
+use this local simulator for every operation.
+
+The SDK repositories contain versioned migration guides: `UPGRADE_4.0.0.md` for PHP and
+`UPGRADE_3.0.0.md` for TypeScript. Their READMEs document the current API.
+
+## Seed demonstration transactions
+
+Run the native executable with `--seed` before starting it:
+
+```sh
+cargo run --manifest-path backend/Cargo.toml -- --database /tmp/flexpay-review.db --seed
+cargo run --manifest-path backend/Cargo.toml -- --database /tmp/flexpay-review.db
+```
+
+Or seed the Compose service's existing volume without starting the HTTP server:
+
+```sh
+docker compose -f compose.prod.yaml run --rm sandbox --seed
+```
+
+Seeding adds six deterministic records: mobile and card payments with success, failure, and pending
+statuses. Order numbers are `SIM-SEED-mobile-success`, `SIM-SEED-mobile-failure`,
+`SIM-SEED-mobile-pending`, `SIM-SEED-card-success`, `SIM-SEED-card-failure`, and
+`SIM-SEED-card-pending`. Repeated runs preserve existing transactions and settings. Seeding sends no
+callbacks and records no fictional delivery attempts. Use pending records to test manual resolution,
+or create new transactions through the clients to test actual callback delivery.
 
 ## Testing use cases
 
@@ -84,7 +152,11 @@ The **Gateway simulator** page can create mobile payments, card checkouts, and p
 
 For a callback receiver on your host machine, use `http://host.docker.internal:9000/callback`. For a receiver in the same Docker network, use its service name. `localhost` inside the sandbox container refers to the sandbox itself.
 
-Request acceptance does not mean payment success. Poll the status endpoint or wait for the callback. The baseline SDKs currently accept only success/failure status values; pending, cancelled, and refund states may require extending their status handling.
+Request acceptance does not mean payment success. Poll the status endpoint or wait for the callback.
+The simulator uses transaction statuses `0` (succeeded), `1` (failed), `2` (pending), `3` (refund pending),
+`4` (refunded), and `5` (cancelled). These are simulator conventions. A real corporate lookup returned status `4`
+with an operator-declined message. Paid and pending corporate outcomes remain unverified; confirm the provider's
+status meanings before relying on them in production.
 
 ## Update or stop
 

@@ -42,7 +42,7 @@ pub(crate) fn mobile(phone: &str, callback: &str) -> Value {
         "reference": "order-123",
         "amount": "25.00",
         "currency": "USD",
-        "callbackUrl": callback,
+        "callback_url": callback,
     })
 }
 

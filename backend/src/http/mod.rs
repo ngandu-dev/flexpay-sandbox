@@ -2,6 +2,7 @@
 
 mod auth;
 mod checkout;
+mod corporate;
 mod payments;
 mod simulator;
 mod transactions;
@@ -20,7 +21,7 @@ use crate::AppState;
 pub fn router(state: Arc<AppState>, frontend: &str) -> Router {
     Router::new()
         .route("/health", get(|| async { Json(json!({"status":"ok"})) }))
-        .route("/api/rest/v1/paymentService", post(payments::mobile))
+        .route("/api/rest/v1/paymentService", post(corporate::pay))
         .route("/api/rest/v1/merchantPayOutService", post(payments::payout))
         .route("/api/rest/v1/check/{id}", get(payments::check))
         .route("/v1.1/pay", post(payments::card))

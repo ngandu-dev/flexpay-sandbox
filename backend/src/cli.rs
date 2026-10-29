@@ -3,6 +3,9 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(version, about = "Local FlexPay API simulator and dashboard")]
 pub(crate) struct Args {
+    /// Add deterministic demonstration transactions and exit without serving HTTP.
+    #[arg(long)]
+    pub(crate) seed: bool,
     #[arg(long, env = "FLEXPAY_BIND", default_value = "127.0.0.1:8080")]
     pub(crate) bind: std::net::SocketAddr,
     #[arg(

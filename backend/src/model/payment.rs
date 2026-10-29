@@ -68,21 +68,11 @@ impl PaymentRequest {
     }
 
     fn validate_card(&self) -> Result<(), String> {
-        if self.reference.chars().count() > 25
-            || self
-                .description
-                .as_deref()
-                .is_none_or(|description| description.trim().is_empty())
-            || [
-                &self.approve_url,
-                &self.cancel_url,
-                &self.decline_url,
-                &self.home_url,
-            ]
+        if [&self.approve_url, &self.cancel_url, &self.decline_url]
             .iter()
             .any(|url| url.as_deref().is_none_or(|url| !valid_url(url)))
         {
-            return Err("Card payments require description, reference (1–25 characters), and valid approve/cancel/decline/home URLs".into());
+            return Err("Card payments require valid approve/cancel/decline URLs".into());
         }
 
         Ok(())

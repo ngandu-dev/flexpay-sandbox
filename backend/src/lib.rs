@@ -6,6 +6,7 @@ mod http;
 mod payments;
 
 pub mod model;
+pub mod seeds;
 pub mod store;
 
 pub use app::AppState;

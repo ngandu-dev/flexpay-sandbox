@@ -1,0 +1,30 @@
+# Changelog
+
+## Unreleased
+
+### Changed
+
+- Accept mobile and card payments at the corporate `/api/rest/v1/paymentService` endpoint. Require bearer headers and type `1` or `2`; accept `callback_url` and the observed `callbackUrl` alias, while rejecting duplicate callback names, obsolete card fields, and body credentials.
+- Use the corporate request format in the gateway dashboard and the upcoming PHP 4 and TypeScript 3 client examples. Keep the legacy card route and payout protocol available.
+- Preserve existing SQLite transaction records while removing the obsolete card description, home URL, and reference-length requirements.
+- Migrate SDK examples and cross-client checks to required `BaseUrl` objects, explicit payment methods, immutable `Status` values, separate acceptance and payment outcomes, and credential-independent callback parsing.
+- Keep README examples on the current SDK APIs and point migration guidance to the clients' versioned upgrade guides.
+
+### Fixed
+
+- Update shadcn to 4.23.0 and constrain `fast-uri` and `systeminformation` to patched versions after dependency auditing. The existing braces exception remains unchanged; the unpatched deepmerge advisory still fails the audit gate.
+
+### Added
+
+- An idempotent `--seed` command for six deterministic mobile/card success, failure, and pending transactions. It preserves existing data and sends no callbacks.
+- Corporate request, authentication, hosted checkout, callback, and seed integration coverage.
+- A repeatable cross-client check that runs the PHP and TypeScript SDKs against a temporary simulator and callback receiver. See [the release review](docs/corporate-release-review.md) for commands and results.
+- Record the real corporate endpoint's mobile/card rejection and nonexistent-order response shapes in the release review. Successful payment and callback verification remains pending.
+- Record one authorized real USD 1 card initiation: the TypeScript client parsed an accepted response with an order number and checkout URL. No checkout or payment completion was attempted.
+- Verify both clients against a real existing-order lookup reporting an operator-declined card transaction. Both preserve lookup code zero and transaction status four as `Status` values and correctly return false for payment success.
+
+### Migration
+
+- Replace client environment flags and individual URL options with one `BaseUrl` containing `payment`, `check`, and `payout`. All three point to the local `/api/rest/v1` prefix.
+- Send corporate card and mobile payloads to `paymentService`. Keep `callback_url` in SDK payloads and examples; the simulator also accepts the observed `callbackUrl` alias for both payment types. Send only one callback field.
+- No corporate upstream sandbox was provided. An existing declined-card lookup is verified; paid and pending status responses remain unverified. Simulator status values are not an assertion about undocumented upstream values.
