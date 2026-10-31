@@ -1,10 +1,17 @@
 # Changelog
 
+## 0.2.3 - 2026-10-31
+
+### Fixed
+
+- Publish release images to the public `ghcr.io/ngandu-dev/flexpay-sandbox` package after the repository transfer.
+- Use the public package path in the Docker Compose file and release examples.
+
 ## 0.2.2 - 2026-10-31
 
 ### Fixed
 
-- Publish release images to the existing public `ghcr.io/bernard-ng/flexpay-sandbox` package.
+- The release image target was incorrect after the repository transfer; fixed in 0.2.3.
 
 ## 0.2.1 - 2026-10-31
 

@@ -116,7 +116,7 @@ By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 ## Publishing a release
 
 Push a version tag such as `v0.2.0` or `v0.3.0-rc.1`. The release workflow reruns
-all checks before publishing `ghcr.io/bernard-ng/flexpay-sandbox` for
+all checks before publishing `ghcr.io/ngandu-dev/flexpay-sandbox` for
 `linux/amd64` and `linux/arm64`. It then creates a GitHub release with generated
 notes and a standalone `compose.prod.yaml` attachment pinned to the image digest.
 

@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
 
-          echo "image=ghcr.io/bernard-ng/flexpay-sandbox" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/ngandu-dev/flexpay-sandbox" >> "$GITHUB_OUTPUT"
 
           if [[ "$RELEASE_TAG" == *-* ]]; then
             echo "stable=false" >> "$GITHUB_OUTPUT"
@@ -166,7 +166,7 @@ jobs:
           mkdir -p release
 
           # Each release asset defaults to the exact image published by this run.
-          sed "s|ghcr.io/bernard-ng/flexpay-sandbox:latest|$IMAGE@$IMAGE_DIGEST|" \
+          sed "s|ghcr.io/ngandu-dev/flexpay-sandbox:latest|$IMAGE@$IMAGE_DIGEST|" \
             compose.prod.yaml > release/compose.prod.yaml
 
           cat > release/notes.md <<'EOF'
