@@ -9,7 +9,7 @@ name: your_app
 
 services:
   flexpay_sandbox:
-    image: ghcr.io/bernard-ng/flexpay-sandbox:v0.2.0
+    image: ghcr.io/bernard-ng/flexpay-sandbox:v0.2.1
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -31,16 +31,17 @@ Start it and open **http://localhost:8080**:
 docker compose up -d
 ```
 
-Use `:v0.2.0` to pin this release, or `:latest` to follow stable releases. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
+Use `:v0.2.1` to pin this release, or `:latest` to follow stable releases. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
 
 Change the published port and `FLEXPAY_PUBLIC_URL` together when using a different address. Set `FLEXPAY_MERCHANT` and `FLEXPAY_TOKEN` to the test credentials your integration will use. This is a development simulator; keep it local and use test data only.
 
 ## Point your integration at the sandbox
 
-Version 0.2.0 supports the corporate API used by the PHP 4 and TypeScript 3 clients.
+Version 0.2.1 supports the corporate API used by the PHP 4 and TypeScript 4 clients.
 Use the [source development setup](CONTRIBUTING.md#development) when changing the simulator.
 
-Use these base URLs with the TypeScript or PHP clients:
+Pass the sandbox deployment URL to `BaseUrl.sandbox()` in TypeScript or `BaseUrl::sandbox()` in PHP.
+Both methods use that URL for payments, status checks, and payouts:
 
 | API | Base URL |
 | --- | --- |
@@ -49,17 +50,11 @@ Use these base URLs with the TypeScript or PHP clients:
 | Payouts (existing contract) | `http://localhost:8080/api/rest/v1` |
 
 ```ts
-import { Client, type BaseUrl } from '@ngandu-dev/flexpay';
-
-const baseUrl: BaseUrl = {
-  payment: 'http://localhost:8080/api/rest/v1',
-  check: 'http://localhost:8080/api/rest/v1',
-  payout: 'http://localhost:8080/api/rest/v1',
-};
+import { BaseUrl, Client, Credential } from '@ngandu-dev/flexpay';
 
 const client = new Client(
-  { merchant: 'TESTMERCHANT', token: 'test-token' },
-  baseUrl,
+  new Credential({ merchant: 'TESTMERCHANT', token: 'test-token' }),
+  BaseUrl.sandbox('http://localhost:8080/api/rest/v1'),
 );
 ```
 
@@ -70,24 +65,20 @@ use Ngandu\Flexpay\Credential;
 
 $client = new Client(
     credential: new Credential(merchant: 'TESTMERCHANT', token: 'test-token'),
-    baseUrl: new BaseUrl(
-        payment: 'http://localhost:8080/api/rest/v1',
-        check: 'http://localhost:8080/api/rest/v1',
-        payout: 'http://localhost:8080/api/rest/v1',
-    ),
+    baseUrl: BaseUrl::sandbox('http://localhost:8080/api/rest/v1'),
 );
 ```
 
-Both clients require all three prefixes in one `BaseUrl` object. They have no environment switch or
-implicit network destinations. The production preset must be selected explicitly. Initiation results
-report acceptance; checks and callbacks report payment outcomes. Codes and transaction statuses are
-always `Status` values, with the provider's integer available through `value`.
+Both clients require an explicit `BaseUrl.production()` or `BaseUrl.sandbox(url)` selection. There is
+no implicit network destination. Initiation results report acceptance; checks and callbacks report
+payment outcomes. Codes and transaction statuses are always `Status` values, with the provider's
+integer available through `value`.
 
 If your application runs in the same Docker network, use `http://flexpay_sandbox:8080` as the host in those URLs. The sandbox never forwards transactions to the live gateway.
 
 ## Corporate API
 
-The PHP 4 and TypeScript 3 clients send mobile (`type: "1"`) and card (`type: "2"`)
+The PHP 4 and TypeScript 4 clients send mobile (`type: "1"`) and card (`type: "2"`)
 requests to `POST /api/rest/v1/paymentService`. Authenticate with the `Authorization: Bearer ...`
 header. The endpoint requires `callback_url` or its observed alias `callbackUrl`; card requests also
 require `approve_url`, `cancel_url`, and `decline_url`. The SDKs and examples keep the documented

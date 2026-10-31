@@ -9,16 +9,12 @@ export async function checkTypeScriptClient({
 	json,
 	eventually,
 }) {
-	const { Client, parseCallback } = await import(
+	const { BaseUrl, CallbackResponse, CardRequest, Client, Credential, MobileRequest, PayoutRequest } = await import(
 		pathToFileURL(join(typescriptRoot, "dist/index.mjs"))
 	);
 	const client = new Client(
-		{ merchant: "TESTMERCHANT", token: "test-token" },
-		{
-			payment: `${base}/api/rest/v1`,
-			check: `${base}/api/rest/v1`,
-			payout: `${base}/api/rest/v1`,
-		},
+		new Credential({ merchant: "TESTMERCHANT", token: "test-token" }),
+		BaseUrl.sandbox(`${base}/api/rest/v1`),
 	);
 
 	for (const [label, phone, expected] of [
@@ -27,14 +23,14 @@ export async function checkTypeScriptClient({
 		["pending", "243810000003", 2],
 	]) {
 		const reference = `ts-mobile-${label}`;
-		const response = await client.mobile({
+		const response = await client.mobile(new MobileRequest({
 			amount: 10,
 			currency: "USD",
 			reference,
 			phone,
 			callbackUrl: `${callbackBase}/callback/${reference}`,
-		});
-		assert.ok(response.accepted, "Mobile initiation accepted");
+		}));
+		assert.ok(response.isAccepted(), "Mobile initiation accepted");
 		await verifyState(response.orderNumber, expected);
 
 		if (expected === 2) {
@@ -56,7 +52,7 @@ export async function checkTypeScriptClient({
 		["cancel", "", 5, "cancelled"],
 	]) {
 		const reference = `ts-card-${label}`;
-		const response = await client.card({
+		const response = await client.card(new CardRequest({
 			amount: 12.5,
 			currency: "CDF",
 			reference,
@@ -64,8 +60,8 @@ export async function checkTypeScriptClient({
 			approveUrl: `${callbackBase}/approved`,
 			cancelUrl: `${callbackBase}/cancelled`,
 			declineUrl: `${callbackBase}/declined`,
-		});
-		assert.ok(response.accepted, "Card initiation accepted");
+		}));
+		assert.ok(response.isAccepted(), "Card initiation accepted");
 		assert.equal(new URL(response.url).origin, base);
 		const page = await fetch(response.url);
 		assert.ok(page.ok, "Hosted card page must be available");
@@ -94,14 +90,14 @@ export async function checkTypeScriptClient({
 	}
 
 	const reference = "ts-payout-success";
-	const payout = await client.payout({
+	const payout = await client.payout(new PayoutRequest({
 		amount: 5,
 		currency: "USD",
 		reference,
 		phone: "243810000001",
 		callbackUrl: `${callbackBase}/callback/${reference}`,
-	});
-	assert.ok(payout.accepted);
+	}));
+	assert.ok(payout.isAccepted());
 	await verifyState(payout.orderNumber, 0);
 	await verifyCallback(reference, payout.orderNumber, true);
 	console.log(
@@ -116,7 +112,7 @@ export async function checkTypeScriptClient({
 				return false;
 			}
 
-			assert.equal(state.successful, expected === 0);
+			assert.equal(state.isSuccessful(), expected === 0);
 			return true;
 		}, `Transaction ${id} did not reach simulator status ${expected}`);
 	}
@@ -128,10 +124,10 @@ export async function checkTypeScriptClient({
 			`No callback for ${reference}`,
 		);
 		const [payload] = await json(`${callbackBase}/recorded/${reference}`);
-		const callback = parseCallback(payload);
+		const callback = CallbackResponse.fromPayload(payload);
 		assert.equal(callback.reference, reference);
 		assert.equal(callback.orderNumber, id);
-		assert.equal(callback.successful, successful);
+		assert.equal(callback.isSuccessful(), successful);
 
 		if (successful) {
 			assert.ok(callback.providerReference);

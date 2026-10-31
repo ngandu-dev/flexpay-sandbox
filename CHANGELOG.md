@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 - 2026-10-31
+
+### Changed
+
+- Use the TypeScript and PHP `BaseUrl.sandbox()` presets in the sandbox integration examples.
+- Refer to version 4 for both SDKs and document one shared sandbox URL for all three operations.
+
 ## 0.2.0 - 2026-10-29
 
 ### Changed
