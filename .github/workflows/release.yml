@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
 
-          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/bernard-ng/flexpay-sandbox" >> "$GITHUB_OUTPUT"
 
           if [[ "$RELEASE_TAG" == *-* ]]; then
             echo "stable=false" >> "$GITHUB_OUTPUT"

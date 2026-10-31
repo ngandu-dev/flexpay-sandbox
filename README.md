@@ -9,7 +9,7 @@ name: your_app
 
 services:
   flexpay_sandbox:
-    image: ghcr.io/bernard-ng/flexpay-sandbox:v0.2.1
+    image: ghcr.io/bernard-ng/flexpay-sandbox:v0.2.2
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -31,13 +31,13 @@ Start it and open **http://localhost:8080**:
 docker compose up -d
 ```
 
-Use `:v0.2.1` to pin this release, or `:latest` to follow stable releases. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
+Use `:v0.2.2` to pin this release, or `:latest` to follow stable releases. Each [GitHub release](https://github.com/bernard-ng/flexpay-sandbox/releases) also includes a ready-to-use `compose.prod.yaml` pinned to that release's image digest.
 
 Change the published port and `FLEXPAY_PUBLIC_URL` together when using a different address. Set `FLEXPAY_MERCHANT` and `FLEXPAY_TOKEN` to the test credentials your integration will use. This is a development simulator; keep it local and use test data only.
 
 ## Point your integration at the sandbox
 
-Version 0.2.1 supports the corporate API used by the PHP 4 and TypeScript 4 clients.
+Version 0.2.2 supports the corporate API used by the PHP 4 and TypeScript 4 clients.
 Use the [source development setup](CONTRIBUTING.md#development) when changing the simulator.
 
 Pass the sandbox deployment URL to `BaseUrl.sandbox()` in TypeScript or `BaseUrl::sandbox()` in PHP.

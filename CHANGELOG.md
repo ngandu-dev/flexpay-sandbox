@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 - 2026-10-31
+
+### Fixed
+
+- Publish release images to the existing public `ghcr.io/bernard-ng/flexpay-sandbox` package.
+
 ## 0.2.1 - 2026-10-31
 
 ### Changed
